@@ -1,0 +1,57 @@
+{
+  "name": "agentrank",
+  "version": "0.1.0",
+  "description": "Evidence-backed task evaluation, performance analytics, and failure intelligence for AI agents — derived from signed proof chains.",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "agentrank": "./bin/cli.mjs"
+  },
+  "files": [
+    "dist",
+    "bin",
+    "templates",
+    "README.md",
+    "LICENSE"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AdelElo13/agentrank.git"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit",
+    "lint": "tsc --noEmit"
+  },
+  "keywords": [
+    "ai",
+    "agent",
+    "evaluation",
+    "scoring",
+    "ranking",
+    "mcp",
+    "agentproofs",
+    "bayesian",
+    "wilson"
+  ],
+  "author": "AdelElo13",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "zod": "^3.24.4"
+  },
+  "devDependencies": {
+    "@types/node": "^22.14.1",
+    "tsup": "^8.4.0",
+    "typescript": "^5.8.3",
+    "vitest": "^3.1.1"
+  }
+}
