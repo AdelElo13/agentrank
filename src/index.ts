@@ -31,4 +31,6 @@ export { signData, verifySignature } from './crypto/signing.ts';
 export { TaskIndex } from './storage/index-db.ts';
 export { compareCohort } from './intelligence/cohorts.ts';
 export { recommendAgent } from './intelligence/routing.ts';
+export { autoEvaluate } from './bridge.ts';
+export { detectBoundaries, summarizeBoundary } from './tasks/boundary.ts';
 export type * from './types.ts';

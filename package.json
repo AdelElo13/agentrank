@@ -1,6 +1,6 @@
 {
   "name": "agentrank-ai",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Evidence-backed task evaluation, performance analytics, and failure intelligence for AI agents — derived from signed proof chains.",
   "type": "module",
   "main": "dist/index.js",

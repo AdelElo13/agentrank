@@ -9,6 +9,7 @@ import { computeCoverage } from './intelligence/coverage.ts';
 import { createSnapshot, saveSnapshot } from './snapshot.ts';
 import { loadOrCreateKeyPair, formatPublicKey, generateId, sha256 } from './crypto/keys.ts';
 import { computeDifficulty } from './scoring/difficulty.ts';
+import { autoEvaluate } from './bridge.ts';
 import type { AgentRankConfig, TaskOutcome, TaskState } from './types.ts';
 
 // ── Helpers ──
@@ -196,6 +197,72 @@ async function cmdPubkey(config: AgentRankConfig): Promise<void> {
   console.log(formatPublicKey(keyPair.publicKey));
 }
 
+async function cmdSync(config: AgentRankConfig): Promise<void> {
+  const keyPair = await loadOrCreateKeyPair(join(config.dataDir, 'keys'));
+  console.log(dim('Scanning agentproofs chain...'));
+  const result = await autoEvaluate(config, keyPair);
+
+  if (result.tasksCreated === 0) {
+    console.log(dim(`Scanned ${result.proofsScanned} proofs. No new tasks to evaluate.`));
+    if (result.tasksSkipped > 0) {
+      console.log(dim(`  (${result.tasksSkipped} already evaluated or too small)`));
+    }
+    return;
+  }
+
+  console.log(green('✓') + ` Synced ${bold(String(result.tasksCreated))} new task(s) from ${result.proofsScanned} proofs`);
+  for (const task of result.newTasks) {
+    const icon = task.outcome === 'passed' ? green('✓') :
+      task.outcome === 'failed' ? red('✗') :
+      task.outcome === 'abandoned' ? yellow('⊘') : dim('?');
+    const goal = task.goal.slice(0, 50);
+    console.log(`  ${icon} ${task.outcome.padEnd(10)} ${task.domain.padEnd(20)} ${goal}`);
+  }
+  if (result.tasksSkipped > 0) {
+    console.log(dim(`  (${result.tasksSkipped} skipped — already evaluated or too small)`));
+  }
+}
+
+async function cmdWatch(config: AgentRankConfig, args: string[]): Promise<void> {
+  let intervalSec = 60;
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === '--interval' && args[i + 1]) intervalSec = parseInt(args[++i], 10);
+  }
+
+  console.log(bold('agentrank watch') + ` — syncing every ${intervalSec}s`);
+  console.log(dim(`Watching: ${config.proofsDir}`));
+  console.log(dim('Press Ctrl+C to stop.\n'));
+
+  const keyPair = await loadOrCreateKeyPair(join(config.dataDir, 'keys'));
+
+  const tick = async () => {
+    const result = await autoEvaluate(config, keyPair);
+    if (result.tasksCreated > 0) {
+      const now = new Date().toLocaleTimeString();
+      console.log(`[${now}] ${green('✓')} Synced ${result.tasksCreated} task(s)`);
+      for (const task of result.newTasks) {
+        const icon = task.outcome === 'passed' ? green('✓') :
+          task.outcome === 'failed' ? red('✗') : dim('?');
+        console.log(`  ${icon} ${task.outcome.padEnd(10)} ${task.domain.padEnd(20)} ${task.goal.slice(0, 40)}`);
+      }
+    }
+  };
+
+  // Initial sync
+  await tick();
+
+  // Poll
+  const interval = setInterval(tick, intervalSec * 1000);
+  process.on('SIGINT', () => {
+    clearInterval(interval);
+    console.log(dim('\nWatch stopped.'));
+    process.exit(0);
+  });
+
+  // Keep alive
+  await new Promise(() => {});
+}
+
 function printHelp(): void {
   console.log(`
 ${bold('agentrank')} — Evidence-backed evaluation and failure intelligence for AI agents
@@ -213,6 +280,8 @@ ${bold('COMMANDS')}
   ${bold('coverage')}           Evaluation coverage report
   ${bold('snapshot')}           Create score snapshot
   ${bold('pubkey')}             Print evaluator public key
+  ${bold('sync')}               Auto-evaluate new proofs from agentproofs
+  ${bold('watch')}              Continuously sync (poll agentproofs chain)
 
 ${bold('OPTIONS')}
   --sign             Sign snapshots with evaluator key
@@ -271,6 +340,12 @@ export async function cli(argv: string[]): Promise<void> {
       break;
     case 'pubkey':
       await cmdPubkey(config);
+      break;
+    case 'sync':
+      await cmdSync(config);
+      break;
+    case 'watch':
+      await cmdWatch(config, args);
       break;
     default:
       console.error(`Unknown command: ${command}`);
