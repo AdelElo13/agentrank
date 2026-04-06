@@ -1,6 +1,6 @@
 {
   "name": "agentrank-ai",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Evidence-backed task evaluation, performance analytics, and failure intelligence for AI agents — derived from signed proof chains.",
   "type": "module",
   "main": "dist/index.js",
@@ -46,9 +46,11 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.1",
+    "better-sqlite3": "^12.8.0",
     "zod": "^3.24.4"
   },
   "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^22.14.1",
     "tsup": "^8.4.0",
     "typescript": "^5.8.3",

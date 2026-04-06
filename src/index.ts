@@ -28,4 +28,7 @@ export { createSnapshot, saveSnapshot } from './snapshot.ts';
 export { redactTask, redactProfile } from './privacy/redaction.ts';
 export { loadOrCreateKeyPair, generateId, sha256, formatPublicKey } from './crypto/keys.ts';
 export { signData, verifySignature } from './crypto/signing.ts';
+export { TaskIndex } from './storage/index-db.ts';
+export { compareCohort } from './intelligence/cohorts.ts';
+export { recommendAgent } from './intelligence/routing.ts';
 export type * from './types.ts';
